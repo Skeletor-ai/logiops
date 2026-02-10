@@ -1,0 +1,14 @@
+# Udev rule to restart logid when a Logitech device is (re)connected.
+# This fixes the common issue where logid starts before the mouse's hidraw
+# device is ready, especially after boot or suspend/resume.
+#
+# Install: sudo cp 90-logid-restart.rules /etc/udev/rules.d/
+# Reload:  sudo udevadm control --reload-rules
+
+# Logitech via USB receiver (Unifying/Bolt)
+ACTION=="add|change", SUBSYSTEM=="hidraw", SUBSYSTEMS=="usb", ATTRS{idVendor}=="046d", \
+  RUN+="/usr/bin/systemctl restart --no-block logid.service"
+
+# Logitech via Bluetooth (BlueZ UHID path 0005:046D:...)
+ACTION=="add|change", SUBSYSTEM=="hidraw", KERNELS=="0005:046D:*", \
+  RUN+="/usr/bin/systemctl restart --no-block logid.service"
