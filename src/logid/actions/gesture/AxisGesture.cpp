@@ -134,7 +134,7 @@ void AxisGesture::move(int16_t axis) {
                    " axis %d/%d; new_axis %d; hires_rem %d th %d neg %d mv %.1f\n", 
                 time(NULL), _config.axis_multiplier.value_or(1), lowres_movement, hires_movement,
                  _input_axis.value(),  low_res_axis, axis, _axis, new_axis, hires_remainder, 
-                 threshold, negative_multiplier, move);
+                 threshold, 0, move);
 
             _hires_remainder = hires_remainder;
         } else {
