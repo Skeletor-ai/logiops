@@ -77,7 +77,7 @@ void AxisGesture::press(bool init_threshold) {
 }
 
 void AxisGesture::release(bool primary) {
-    // Do nothing
+    _axis = 0;
     (void) primary; // Suppress unused warning
 }
 
@@ -94,15 +94,15 @@ void AxisGesture::move(int16_t axis) {
     int hires_remainder = _hires_remainder;
 
 
-    if (new_axis > threshold) {
+    if (std::abs(new_axis) > threshold) {
         double move = axis;
-        if (_axis < threshold)
-            move = new_axis - threshold;
-        bool negative_multiplier = _config.axis_multiplier.value_or(1) < 0;
-        if (negative_multiplier)
-            move *= -_config.axis_multiplier.value_or(1);
-        else
-            move *= _config.axis_multiplier.value_or(1);
+        if (std::abs(_axis) < threshold) {
+            if (new_axis > 0)
+                move = new_axis - threshold;
+            else
+                move = new_axis + threshold;
+        }
+        move *= _config.axis_multiplier.value_or(1);
         // Handle hi-res multiplier
         move *= _multiplier;
 
@@ -123,12 +123,6 @@ void AxisGesture::move(int16_t axis) {
                 lowres_movement = hires_remainder / 120;
                 if (lowres_movement == 0) {
                     lowres_movement = hires_remainder > 0 ? 1 : -1;
-                }
-
-                if ((lowres_movement > 0 && negative_multiplier) ||
-                    (lowres_movement < 0 && !negative_multiplier))
-                {
-                    lowres_movement = 0;
                 }
 
                 hires_remainder -= lowres_movement * 120;
@@ -163,7 +157,7 @@ void AxisGesture::setHiresMultiplier(double multiplier) {
     _hires_multiplier = multiplier;
     if (_input_axis.has_value()) {
         if (InputDevice::getLowResAxis(_input_axis.value()) != -1)
-            _multiplier = _config.axis_multiplier.value_or(1) * multiplier;
+            _multiplier = multiplier; // Don't bake axis_multiplier here, it's applied in move()
     }
 }
 
